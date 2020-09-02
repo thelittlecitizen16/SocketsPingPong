@@ -13,25 +13,22 @@ namespace PingPongServerTcp
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress ipAddr = ipHost.AddressList[0];
 
-            TcpListener serverSocket = new TcpListener(ipAddr, 8888);
-            TcpClient clientSocket = default(TcpClient);
+            TcpListener listener = new TcpListener(ipAddr, 8888);
+            Console.WriteLine("Listening...");
+            listener.Start();
 
-            serverSocket.Start();
             Console.WriteLine(" >> " + "Server Started, wait to connection...");
-            var counter = 0;
 
             while (true)
             {
-                counter += 1;
-                clientSocket = serverSocket.AcceptTcpClient();
+                Console.WriteLine(" >> " + "Client started!");
+                TcpClient tcpClient = listener.AcceptTcpClient();
 
-                Console.WriteLine(" >> " + "Client No:" + Convert.ToString(counter) + " started!");
-                // handleClinet client = new handleClinet();
-                //client.startClient(clientSocket, Convert.ToString(counter));
+                HandleClient client = new HandleClient();
+                client.StartClient(tcpClient);
             }
 
-            clientSocket.Close();
-            serverSocket.Stop();
+          
             Console.WriteLine(" >> " + "exit");
             Console.ReadLine();
 
@@ -43,39 +40,72 @@ namespace PingPongServerTcp
 
         public void StartClient(TcpClient inClientSocket)
         {
-            this.clientSocket = inClientSocket;
+            clientSocket = inClientSocket;
             Thread ctThread = new Thread(DoChat);
             ctThread.Start();
         }
 
         private void DoChat()
         {
-            byte[] bytesFrom = new byte[10025];
-            string dataFromClient = null;
-            Byte[] sendBytes = null;
-
-            while ((true))
+            while (true)
             {
                 try
                 {
-                    NetworkStream networkStream = clientSocket.GetStream();
+                    NetworkStream nwStream = clientSocket.GetStream();
+                    byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
 
-                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
-                    dataFromClient = Encoding.ASCII.GetString(bytesFrom);
-                  //  dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
-                    Console.WriteLine(" >> " + "From client-" + dataFromClient);
+                    //---read incoming stream---
+                    int bytesRead = nwStream.Read(buffer, 0, clientSocket.ReceiveBufferSize);
 
-                    sendBytes = Encoding.ASCII.GetBytes(dataFromClient);
+                    //---convert the data received into a string---
+                    string dataReceived = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine("Received : " + dataReceived);
 
-                    networkStream.Write(sendBytes, 0, sendBytes.Length);
-                    networkStream.Flush();
-                    Console.WriteLine(" >> " + dataFromClient);
+                    //---write back the text to the client---
+                    Console.WriteLine("Sending back : " + dataReceived);
+                    nwStream.Write(buffer, 0, bytesRead);
                 }
-                catch (Exception ex)
+                catch (SocketException)
                 {
-                    Console.WriteLine(" >> " + ex.ToString());
+                    clientSocket.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    clientSocket.Close();
+                }
+                catch (Exception)
+                {
+                    clientSocket.Close();
                 }
             }
+
+            //byte[] bytesFrom = new byte[10025];
+            //string dataFromClient = null;
+            //Byte[] sendBytes = null;
+
+            //while ((true))
+            //{
+            //    try
+            //    {
+            //        byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
+            //        int bytesRead = networkStream.Read(buffer, 0, clientSocket.ReceiveBufferSize);
+
+            //        networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
+            //        dataFromClient = Encoding.ASCII.GetString(bytesFrom);
+            //      //  dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("$"));
+            //        Console.WriteLine(" >> " + "From client-" + dataFromClient);
+
+            //        sendBytes = Encoding.ASCII.GetBytes(dataFromClient);
+
+            //        networkStream.Write(sendBytes, 0, sendBytes.Length);
+            //        networkStream.Flush();
+            //        Console.WriteLine(" >> " + dataFromClient);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(" >> " + ex.ToString());
+            //    }
+            //}
         }
     }
 }
