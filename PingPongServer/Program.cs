@@ -21,11 +21,11 @@ namespace PingPongServer
                 listener.Bind(localEndPoint);
                 listener.Listen(10);
 
+                Console.WriteLine("Waiting connection ... ");
+                Socket clientSocket = listener.Accept();
+
                 while (true)
                 {
-                    Console.WriteLine("Waiting connection ... ");
-                    Socket clientSocket = listener.Accept();
-
                     byte[] bytesReceive = new Byte[1024];
                     string data = null;
 
@@ -48,7 +48,3 @@ namespace PingPongServer
         }
     }
 } 
-
-        }
-    }
-}
