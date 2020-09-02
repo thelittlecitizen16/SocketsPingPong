@@ -26,19 +26,16 @@ namespace PingPongServer
                     Console.WriteLine("Waiting connection ... ");
                     Socket clientSocket = listener.Accept();
 
-                    byte[] bytes = new Byte[1024];
+                    byte[] bytesReceive = new Byte[1024];
                     string data = null;
 
-                    int numByte = clientSocket.Receive(bytes);
-                    data += Encoding.ASCII.GetString(bytes,
+                    int numByte = clientSocket.Receive(bytesReceive);
+                    data += Encoding.ASCII.GetString(bytesReceive,
                                                0, numByte);
 
                     Console.WriteLine("Text received -> {0} ", data);
-                    byte[] message = Encoding.ASCII.GetBytes("Test Server");
 
-                    clientSocket.Send(message);
-
-                    
+                    clientSocket.Send(bytesReceive);
                    // clientSocket.Shutdown(SocketShutdown.Both);
                    // clientSocket.Close();
                 }
