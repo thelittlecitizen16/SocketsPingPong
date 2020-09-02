@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace PingPongServer
 {
@@ -11,6 +11,7 @@ namespace PingPongServer
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress ipAddr = ipHost.AddressList[0];
+          //  int port =int.Parse(args[0]);
             IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
 
             Socket listener = new Socket(ipAddr.AddressFamily,
@@ -21,23 +22,14 @@ namespace PingPongServer
                 listener.Bind(localEndPoint);
                 listener.Listen(10);
 
-                Console.WriteLine("Waiting connection ... ");
-                Socket clientSocket = listener.Accept();
+                Console.WriteLine("Waiting for first connection ... ");
 
                 while (true)
                 {
-                    byte[] bytesReceive = new Byte[1024];
-                    string data = null;
+                    Socket clientSocket = listener.Accept();
 
-                    int numByte = clientSocket.Receive(bytesReceive);
-                    data += Encoding.ASCII.GetString(bytesReceive,
-                                               0, numByte);
-
-                    Console.WriteLine("Text received -> {0} ", data);
-
-                    clientSocket.Send(bytesReceive);
-                   // clientSocket.Shutdown(SocketShutdown.Both);
-                   // clientSocket.Close();
+                    HandleClinet handleClinet = new HandleClinet();
+                    handleClinet.Connect(clientSocket);
                 }
             }
 
@@ -46,5 +38,6 @@ namespace PingPongServer
                 Console.WriteLine(e.ToString());
             }
         }
+      
     }
 } 
